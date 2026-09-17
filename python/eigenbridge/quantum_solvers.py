@@ -99,7 +99,7 @@ def _matrix_to_observable(flat_matrix, n):
     if next_pow2 != n:
         padded_mat = np.zeros((next_pow2, next_pow2))
         padded_mat[:n, :n] = mat
-        # Put penalties on padded diagonal entries (using Gershgorin bound) so they don't mix with real eigenvalues.
+        # Pad unused diagonal with Gershgorin bound so fake eigenvalues stay outside.
         gershgorin = float(np.max(np.sum(np.abs(mat), axis=1)))
         penalty = max(1.0, gershgorin)
         for i in range(n, next_pow2):
@@ -151,12 +151,14 @@ def _expect_energy(estimator, circuit, observable, parameters):
 
 def _quantum_variance_std(estimator, circuit, observable, parameters, h_mean):
     # Quantum std of H in this state: sqrt(max(0, <H^2> - <H>^2)).
-    h2 = _expect_energy(estimator, circuit, observable @ observable, parameters)
+    h2 = _expect_energy(
+        estimator, circuit, observable @ observable, parameters
+    )
     return float(np.sqrt(max(0.0, h2 - h_mean**2)))
 
 
 def _occupation_stds(estimator, circuit, parameters, n, next_pow2):
-    # Quantum std of each eigenvector component: sqrt(p (1 - p)), where p is the probability of that basis outcome.
+    # Occupation std per component: sqrt(p (1 - p)) for basis outcome probability p.
     stds = np.zeros(n, dtype=float)
     for j in range(n):
         proj = np.zeros((next_pow2, next_pow2), dtype=float)
@@ -235,7 +237,7 @@ def run_vqd_eigensolver(flat_matrix, n, k=None, use_noise=False):
         eigenvectors[:, i] = _statevector_to_real_eigenvector(
             optimal_circuit, optimal_parameters, n
         )
-    
+
     uq_values = [0.0] * len(eigenvalues)
     uq_vectors = np.zeros((n, n), dtype=float)
     for i in range(k):

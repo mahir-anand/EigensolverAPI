@@ -90,7 +90,9 @@ class TestEigensolvers(unittest.TestCase):
                 self.assertEqual(uq, 0.0)
         if k_filled is None:
             k_filled = n_returned
-        self._check_uq_vectors(eigenvectors, uq_vectors, n=3, k_filled=k_filled)
+        self._check_uq_vectors(
+            eigenvectors, uq_vectors, n=3, k_filled=k_filled
+        )
 
     def test_vqd_eigensolver(self):
         results = eigenbridge.run_vqd_eigensolver(self.flat_matrix, n=3)
